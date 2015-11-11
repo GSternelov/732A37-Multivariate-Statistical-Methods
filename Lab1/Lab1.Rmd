@@ -77,7 +77,7 @@ grid.arrange(plot5, plot6,plot7, ncol=2)
 
 An interpretation of the dot plots is that extreme values can be seen in most of the graphs. The most extreme countries seem to be Samoa and Cook Islands who has the most extreme values for several variables.  
 
-Examining if the variables seem to be normally distributed by looking at the following plots.  
+Examining if the variables seem to be normally distributed by looking at the following plots. A box plot is also included to illustrate how much the values differ for the respective distance.    
 
 ```{r, echo=FALSE}
 par(mfrow=c(2, 4))
@@ -90,7 +90,7 @@ bxpdat <- boxplot(data[,2:8],col="blue",main="Boxplot")
 par(mfrow=c(1, 1))
 ```
 
-It is concluded that the observated values for all the variables are lying quite well along the red line except for at the highest values. Especially the varialbles "800m" and "Marathon" seem to have...
+It is concluded that the observated values for all the variables are lying quite well along the red line. This indicates that they can be thougth of as being approximately normally distributed. Regarding the box plot it can easily be seen that the values differ far more for marathon than for instance 100m.  
 
 ## Assigment 2
 
@@ -117,8 +117,7 @@ The longer distance, the more apparent extreme values. When looking at for examp
 ### c)
 Another way of visually investigating which countries that are the most extreme is by looking at three-dimensional scatterplots. 
 
-![alt text](C:/Users/Gustav/Documents/732A37-Multivariate-Statistical-Methods/Lab1/3c.png)  
-
+![alt text](C:/Users/Gustav/Documents/732A37-Multivariate-Statistical-Methods/Lab1/3c.png)
 ![alt text](C:/Users/Gustav/Documents/732A37-Multivariate-Statistical-Methods/Lab1/3c_2.png)  
 
 ![alt text](C:/Users/Gustav/Documents/732A37-Multivariate-Statistical-Methods/Lab1/3c_3.png)
@@ -127,10 +126,10 @@ Another way of visually investigating which countries that are the most extreme 
 ## Assignment 3
 
 ### a)
-
+By looking at the matrix scatterplot, 3D plots and dot plots the most extreme countries seem to be Samoa, Cook Islands, Papua New Guinea and perhaps also North Korea.  
 
 ### b)
-
+The five most extreme countries according to the squared Euclidiean distance:
 ```{r,echo=FALSE}
 XmeanV<-(data[,2:8])
 XmeanV<-(scale(XmeanV,center = TRUE,scale = FALSE))
@@ -143,6 +142,7 @@ head(slutresult, n=5)
 
 
 ### c)
+When the Euclidean distances are computed for standardized data the following countries are the most extreme:  
 
 ```{r,echo=FALSE}
 VarV<-diag(covDat)
@@ -159,6 +159,7 @@ head(slutresult2, n=5)
 
 
 ### d)
+A third way to measure the distance is by computing Mahalanobis distances between the countries. The five most extreme values according to this measure are given by the following table.  
 
 ```{r, echo=FALSE}
 MahanabisD<-(XmeanV)%*%solve(covDat)%*%t(XmeanV)
@@ -169,8 +170,8 @@ head(slutresult3, n=5)
 ```
 
 ### e)
-The countries Samoa, Cook Islands and Papua New Guinea are at the top five for all of the computed measures, but as mentioned in the exercise the results differ between the respective distance measures.
-For example Sweden are are ranked at place 48 in b, 50 in c and 54 in d. 
+The countries Samoa, Cook Islands and Papua New Guinea are in the top five for all of the computed measures, but as mentioned in the exercise the results differ between the respective distance measures.
+For example Sweden are are ranked at place 48 in for the squared Euclidean distance, 50 for the Euclidean distance on standardized data and at place 54 for Mahalanobis distances. 
 
 
 
