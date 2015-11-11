@@ -1,0 +1,176 @@
+---
+title: "Multivariate Statistical Methods - Lab 1"
+author: "Gustav Sternelöv"
+date: "Wednesday, November 11, 2015"
+output:
+  pdf_document:
+    fig_height: 4
+    fig_width: 7
+---
+
+## Assignment 1
+```{r,echo=FALSE}
+data <- "C:/Users/Gustav/Documents/732A37-Multivariate-Statistical-Methods/Lab1/data.dat"
+data <- read.delim(data, header=FALSE)
+names(data) <- c("Country", "100", "200", "400", "800", "1500", "3000", "Marathon")
+```
+
+
+### a)
+Mean value, standard deviation, variance, min value, max value and median for the seven variables are displayed in the tables below.
+```{r, echo=FALSE}
+Mean <- unlist(lapply(data[,2:8],mean))
+Standard_deviation <- unlist(lapply(data[,2:8],sd))
+Variance <- unlist(lapply(data[,2:8],var))
+Max <- unlist(lapply(data[,2:8],max))
+Min <- unlist(lapply(data[,2:8],min))
+Median <- unlist(lapply(data[,2:8],median))
+```
+
+```{r}
+Mean
+Standard_deviation
+Variance
+Max
+Min
+Median
+```
+
+
+### b)
+
+Dot plot for each variable to investigate if any extreme values can be found. 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(ggplot2)
+library(gridExtra)
+library(scales)
+library(grid)
+
+plot1 <- ggplot(data, aes(x=data[, 2], y=row.names(data))) + geom_point(col="white")+
+  labs(list(title =colnames(data)[2] , x = "Time")) +
+  geom_text(aes(label=data[, 1]), size=2)
+plot2 <- ggplot(data, aes(x=data[, 3], y=row.names(data))) +  geom_point(col="white")+
+  labs(list(title =colnames(data)[3] , x = "Time")) + 
+  geom_text(aes(label=data[, 1]), vjust=1.2, hjust=0.5, size=2)
+plot3 <- ggplot(data, aes(x=data[, 4], y=row.names(data))) +  geom_point(col="white")+
+  labs(list(title =colnames(data)[4] , x = "Time")) + 
+  geom_text(aes(label=data[, 1]), vjust=1.2, hjust=0.5, size=2)
+plot4 <- ggplot(data, aes(x=data[, 5], y=row.names(data))) +  geom_point(col="white")+
+  labs(list(title =colnames(data)[5] , x = "Time")) + 
+  geom_text(aes(label=data[, 1]), vjust=1.2, hjust=0.5, size=2)
+plot5 <- ggplot(data, aes(x=data[, 6], y=row.names(data))) +  geom_point(col="white")+
+  labs(list(title =colnames(data)[6] , x = "Time")) + 
+  geom_text(aes(label=data[, 1]), vjust=1.2, hjust=0.5, size=2)
+plot6 <- ggplot(data, aes(x=data[, 7], y=row.names(data))) +  geom_point(col="white")+
+  labs(list(title =colnames(data)[7] , x = "Time")) + 
+  geom_text(aes(label=data[, 1]), vjust=1.2, hjust=0.5, size=2)
+plot7 <- ggplot(data, aes(x=data[, 8], y=row.names(data))) +  geom_point(col="white")+
+  labs(list(title =colnames(data)[8] , x = "Time")) + 
+  geom_text(aes(label=data[, 1]), vjust=1.2, hjust=0.5, size=2)
+
+grid.arrange(plot1, plot2,plot3,plot4, ncol=2)
+grid.arrange(plot5, plot6,plot7, ncol=2)
+
+
+```
+
+An interpretation of the dot plots is that extreme values can be seen in most of the graphs. The most extreme countries seem to be Samoa and Cook Islands who has the most extreme values for several variables.  
+
+Examining if the variables seem to be normally distributed by looking at the following plots.  
+
+```{r, echo=FALSE}
+par(mfrow=c(2, 4))
+for(i in 2:8){
+  #hist(data[,i],main=colnames(data[i]),xlab="observation")
+  qqnorm(data[,i],main=colnames(data[i]), col="purple")
+  qqline(data[,i], col="red")
+}
+bxpdat <- boxplot(data[,2:8],col="blue",main="Boxplot")
+par(mfrow=c(1, 1))
+```
+
+It is concluded that the observated values for all the variables are lying quite well along the red line except for at the highest values. Especially the varialbles "800m" and "Marathon" seem to have...
+
+## Assigment 2
+
+### a)
+Covariance and correlation matrices:  
+
+```{r, echo=FALSE}
+covDat <- cov(data[,2:8])
+corrDat <- cor(data[,2:8])
+covDat
+corrDat
+```
+The correlation is stronger for more similar distances. For example the 100m have the strongest correlation to 200m, second strongest to 400m and so on. Regarding the variance it seem to be rising for longer distances. 
+
+### b)
+A scatterplot matrix
+
+```{r, echo=FALSE}
+plot(data[, 2:8], col="blue")
+```
+
+The longer distance, the more apparent extreme values. When looking at for example Marathon versus the other variables there are three extreme values and for 3000m there are at least one extreme value. 
+
+### c)
+Another way of visually investigating which countries that are the most extreme is by looking at three-dimensional scatterplots. 
+
+![alt text](C:/Users/Gustav/Documents/732A37-Multivariate-Statistical-Methods/Lab1/3c.png)  
+
+![alt text](C:/Users/Gustav/Documents/732A37-Multivariate-Statistical-Methods/Lab1/3c_2.png)  
+
+![alt text](C:/Users/Gustav/Documents/732A37-Multivariate-Statistical-Methods/Lab1/3c_3.png)
+
+
+## Assignment 3
+
+### a)
+
+
+### b)
+
+```{r,echo=FALSE}
+XmeanV<-(data[,2:8])
+XmeanV<-(scale(XmeanV,center = TRUE,scale = FALSE))
+sqdistance<-(XmeanV)%*%t(XmeanV)
+sqDiagdistance<-(diag(sqdistance))
+result<-data.frame(data[,1],sqDiagdistance)
+slutresult<-result[order(-result[,2]),]
+head(slutresult, n=5)
+```
+
+
+### c)
+
+```{r,echo=FALSE}
+VarV<-diag(covDat)
+VarM<-as.vector(VarV)*diag(length(VarV))
+newSqDistance<-(XmeanV)%*%solve(VarM)%*%t(XmeanV)
+newSqDistance<-diag(newSqDistance)
+#newSqDistance<-as.data.frame(t(newSqDistance))
+result2<-data.frame(data[,1],newSqDistance)
+slutresult2<-result2[order(-result2[,2]),]
+head(slutresult2, n=5)
+
+```
+
+
+
+### d)
+
+```{r, echo=FALSE}
+MahanabisD<-(XmeanV)%*%solve(covDat)%*%t(XmeanV)
+MahanabisD<-diag(MahanabisD)
+result3<-data.frame(data[,1],MahanabisD)
+slutresult3<-result3[order(-result3[,2]),]
+head(slutresult3, n=5)
+```
+
+### e)
+The countries Samoa, Cook Islands and Papua New Guinea are at the top five for all of the computed measures, but as mentioned in the exercise the results differ between the respective distance measures.
+For example Sweden are are ranked at place 48 in b, 50 in c and 54 in d. 
+
+
+

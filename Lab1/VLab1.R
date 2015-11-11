@@ -1,4 +1,3 @@
-
 mydat<-"C:/Users/vuong/Desktop/Multivariate/T1-9.dat"
 data<-read.delim(mydat,header=FALSE)
 colnames(data)<-c("Country","100m(s)","200m(s)","400m(s)","800m(min)","1500m(min)","3000m(min)","Marathon(min)")
@@ -78,7 +77,7 @@ resulttest<-data.frame(data[,1],distancenewSqDistance)
 slutresulttest<-resulttest[order(-resulttest[,2]),]
 slutresulttest
 
-VarV<-diag(covM)
+VarV<-diag(cov)
 VarM<-as.vector(VarV)*diag(length(VarV))
 newSqDistance<-(XmeanV)%*%solve(VarM)%*%t(XmeanV)
 newSqDistance<-diag(newSqDistance)
@@ -98,3 +97,5 @@ MahanabisD<-diag(MahanabisD)
 result3<-data.frame(data[,1],MahanabisD)
 slutresult3<-result3[order(-result3[,2]),]
 slutresult3
+
+
