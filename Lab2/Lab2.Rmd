@@ -1,0 +1,177 @@
+---
+title: "Lab 2 - Multivariate Statistical Methods"
+author: "Gustav Sternelöv"
+date: "Tuesday, November 24, 2015"
+output: pdf_document
+---
+
+# Assignment 1
+```{r, echo=FALSE}
+data <- "C:/Users/Gustav/Documents/732A37-Multivariate-Statistical-Methods/Lab2/data.dat"
+data <- read.delim(data, header=FALSE)
+names(data) <- c("Country", "100", "200", "400", "800", "1500", "3000", "Marathon")
+```
+
+## a)
+In a test where each country is tested with a significance level of 0.1 %, the following rule is applied to determine whether a country is an outlier or not:  
+
+If the Mahalanbois distance is higher than 24.32, the country is considered to be an outlier.  
+
+The table below shows the six countries which has the highest calculated distances. Out of these six countres the first three of them are considered to be outliers. These are Samoa, Papua New Guinea and North Korea.  
+
+```{r, echo=FALSE}
+XmeanV<-(data[,2:8])
+XmeanV<-(scale(XmeanV,center = TRUE,scale = FALSE))
+covDat <- cov(data[,2:8])
+
+MahanabisD<-(XmeanV)%*%solve(covDat)%*%t(XmeanV)
+
+valus <- data.frame(data[,1],diag(MahanabisD))
+head(valus[order(-valus[,2]),])
+chisqVal <- qchisq(0.999, df=7)
+```
+
+## b)
+
+The different results given by the Mahalanobis and the euclidean distance is due to the use of the covariance in the former distance measure. In this case the data set uses different units for different variables and this is not taken into account unless the covariance matrix is used. Since the Mahalanobis distances uses the covariances and the euclidean distances not uses them, we obtain different results depending on which distances that are calculated.
+
+
+
+# Assignment 2
+```{r, echo=FALSE}
+data2 <- "C:/Users/Gustav/Documents/732A37-Multivariate-Statistical-Methods/Lab2/T5-12.dat"
+data2 <- read.delim(data2, header=FALSE, sep="")
+```
+## a)
+
+```{r, echo=FALSE, fig.height=4, fig.width=6}
+library(car)
+my_mean <-  unlist(lapply(data2, mean))
+plot(data2)
+car::ellipse(center=my_mean, shape=cov(data2), radius=0.365, col="blue")
+car::ellipse(center=c(190, 275), shape=cov(data2), radius=0.365, col="brown")
+```
+
+In the graph above the blue ellipse is the 95 % confidence ellipse for the population means for the female birds. The mean values for the male birds are illustrated by the brown dot and these values are thought to be plausible if they lie within the blue ellipse. Since this is the case, the dot lies just inside the ellipse, the values are considered to be plausible.
+
+
+## b)
+
+```{r, echo=FALSE}
+# Hotellings conf ints
+a <- matrix(c(1,0))
+c1 <- t(a) %*% cov(data2) %*% a
+a2 <- matrix(c(0,1))
+c2 <- t(a2) %*% cov(data2) %*% a2
+
+conf1_Low <- my_mean[1] - sqrt(((2*44) / (45-2) * 3.21 / 45 ) * c1)
+conf1_High <- my_mean[1] + sqrt(((2*44) / (45-2) * 3.21 / 45 ) * c1)
+conf2_Low <- my_mean[2] - sqrt(((2*44) / (45-2) * 3.21 / 45 ) * c2)
+conf2_High <- my_mean[2] + sqrt(((2*44) / (45-2) * 3.21 / 45 ) * c2)
+Hotellings <- list(WingLength =c(conf1_Low, conf1_High) , TailLength=c(conf2_Low, conf2_High))
+
+# Bonferroni
+Bonf1_Low <- my_mean[1] - 2.32 * sqrt(cov(data2)[1,1] / 45)
+Bonf1_High <- my_mean[1] + 2.32 * sqrt(cov(data2)[1,1] / 45)
+Bonf2_Low <- my_mean[2] - 2.32 * sqrt(cov(data2)[2,2] / 45)
+Bonf2_High <- my_mean[2] +  2.32 * sqrt(cov(data2)[2,2] / 45)
+Bonferroni <- list(TailLength =c(Bonf1_Low, Bonf1_High) , WingLength=c(Bonf2_Low, Bonf2_High))
+
+```
+
+95 % confidence interval for mean tail and wing length, Hotellings $T^2$:  
+Tail length: `r Hotellings[[1]]`  
+Wing length: `r Hotellings[[2]]`  
+
+95 % confidence interval for mean tail and wing length, Bonferroni:  
+Tail length: `r Bonferroni[[1]]`  
+Wing length: `r Bonferroni[[2]]`  
+
+As expected the Bonferroni intervals are more narrow than the $T^2$-intervals, although the difference is very small. 
+
+An advantage with the $T^2$-intervals is that they works better when the number of specified mean components is large. 
+
+
+## c)
+To examine whether a bivariate normal distribution is a viable population model, Q-Q plots and a scatter diagram are produced.  
+
+```{r, echo=FALSE, fig.height=3, fig.width=6}
+par(mfrow=c(1,2))
+qqnorm(data2[,1]); qqline(data2[,1], col = 2)
+qqnorm(data2[,2]); qqline(data2[,2], col = 2)
+par(mfrow=(c(1,1)))
+```
+  
+  In the Q-Q plot above to the left the values lies well alongside the red line. For the Q-Q plot to the right the values does not follow the red line equally well, but it still looks quite good. This would suggest that the bivariate normal distribution is a viable population model.  
+
+```{r, echo=FALSE, fig.height=3, fig.width=6}
+library(ggplot2)
+ggplot(data2, aes(x=V1, y=V2)) + geom_point()
+```
+  
+  Regarding the scatter diagram above the observed points could be thought of as creating an ellipse. This also speaks for the viability of the bivariate normal distribution as a population model.  
+  
+# Assignment 3
+```{r, echo=FALSE}
+data3 <- "C:/Users/Gustav/Documents/732A37-Multivariate-Statistical-Methods/Lab2/T6-13.dat"
+data3 <- read.delim(data3, header=FALSE, sep="")
+```
+
+
+```{r, echo=FALSE}
+
+year1 <- subset(data3, data3$V5 == 1)
+year2 <- subset(data3, data3$V5 == 2)
+year3 <- subset(data3, data3$V5 == 3)
+
+# Medelvärden
+meanY1 <- 0
+meanY2 <- 0
+meanY3 <- 0
+for (i in 1:4){
+  meanY1[i] <- mean(year1[,i])
+  meanY2[i] <- mean(year2[,i])
+  meanY3[i] <- mean(year3[,i])
+}
+# Differenser
+DiffV1 <- c(meanY1[1] - meanY2[1], meanY1[1] - meanY3[1], meanY2[1] - meanY3[1])
+DiffV2 <- c(meanY1[2] - meanY2[2], meanY1[2] - meanY3[2], meanY2[2] - meanY3[2])
+DiffV3 <- c(meanY1[3] - meanY2[3], meanY1[3] - meanY3[3], meanY2[3] - meanY3[3])
+DiffV4 <- c(meanY1[4] - meanY2[4], meanY1[4] - meanY3[4], meanY2[4] - meanY3[4])
+```
+
+The formula used for calculating simultaneous confidence intervals are presented below. The part to the left of the  $\pm$ sign gives the difference and the part to the right gives the size of the interval.  
+$\bar{x}_{ki}$ - $\bar{x}_{li}$ $\pm t_{n-g} (\frac{\alpha}{pg(g-1)})\sqrt{\frac{\omega_{ii}}{n-g}\frac{1}{n_k}+\frac{1}{n_l}}$  
+Where *n* is equal to 90, *g* is equal to 3 and *p* is equal to 4. All time periods have the same amount of observations, so both $n_k$ and $n_l$ is always equal to 30. $\omega_{ii}$ is the diagonal values of the W matrix and this corresponds to the following vector of values (1785.4, 1924.3, 2153.0, 840.2), where the first value is equal to $\omega_{11}$, the second $\omega_{22}$ and so on.  
+$t_{n-g} (\frac{\alpha}{pg(g-1)})$ is a constant and can be computed to be equal to: 2.943  
+Four different values can be computed for the second part of the expression, $\sqrt{\frac{\omega_{ii}}{n-g}\frac{1}{n_k}+\frac{1}{n_l}}$,  one for each response variable.  
+For the respective response variable then the following calculation is done to determine the interval size:  
+$2.943 \times \sqrt{\frac{1785.4}{87}\frac{1}{30}+\frac{1}{30}}$ = 3.44  
+$2.943 \times \sqrt{\frac{1924.3}{87}\frac{1}{30}+\frac{1}{30}}$ = 3.57  
+$2.943 \times \sqrt{\frac{2153.0}{87}\frac{1}{30}+\frac{1}{30}}$ = 4.03  
+$2.943 \times \sqrt{\frac{840.2}{87}\frac{1}{30}+\frac{1}{30}}$ = 2.36  
+
+The next step is to calcualte the differences between the mean values for the different periods. This is done for all of the for four response variables. This results in twelve differences, three for each response variable. Each difference is compared to corresponding interval size and if the interval not covers zero the mean values for the respective time periods are concluded to be different.  
+
+($\tau_{11} - \tau_{21}$,$\tau_{11} - \tau_{31}$ ,$\tau_{21} - \tau_{31}$) =(`r round(DiffV1, 1)`) $\pm$ 3.44   
+($\tau_{12} - \tau_{22}$,$\tau_{12} - \tau_{32}$ ,$\tau_{22} - \tau_{32}$) =(`r round(DiffV2, 1)`) $\pm$ 3.57  
+($\tau_{13} - \tau_{23}$,$\tau_{13} - \tau_{33}$ ,$\tau_{23} - \tau_{33}$) =(`r round(DiffV3, 1)`) $\pm$ 4.03   
+($\tau_{14} - \tau_{24}$,$\tau_{14} - \tau_{34}$ ,$\tau_{24} - \tau_{34}$) =(`r round(DiffV4, 1)`) $\pm$ 2.36
+
+Since it easily can be seen that all of the intervals covers zero the exact intervals are not calculated. The interpretation of this result is that none of the mean components seem to differ among the populations. 
+
+One of the assumptions made when conducting a MANOVA is that the covariance matrices are equal for the different populations. Another is that the random samples from different populations are independent and a third that each population is multivariate normal.
+
+Regarding the independence of the samples it is hard to both reject and confirm this assumption, but it feels reasonable to consider them to be independent. The covariance matrices are compared and thought to be relatively similar, this could be investigated further with a Box's test but this is not done here. 
+
+One way to investigate if each population is multivariate normal is by looking at a scatter matrix. In the scatter matrix shown below the observations are coloured after the population they comes from.
+```{r,echo=FALSE, fig.height=3, fig.width=6}
+plot(data3[,1:4], col=data3$V5)
+```
+
+It is a rather difficult plot to interpret in terms of multivariate normality, but at least it gives enough information for 
+ger frågetecken
+Bör inte vara så utspridda, ser dock bara i en dimension
+Men hur som frågetecken för antagandet om multivariat normalfördelning
+
+
