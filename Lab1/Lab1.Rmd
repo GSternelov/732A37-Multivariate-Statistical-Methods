@@ -17,7 +17,7 @@ names(data) <- c("Country", "100", "200", "400", "800", "1500", "3000", "Maratho
 
 
 ### a)
-Mean value, standard deviation, variance, min value, max value and median for the seven variables are displayed in the tables below.
+Mean value, standard deviation, variance, min value, max value and median for the seven variables are displayed in the table below.
 ```{r, echo=FALSE}
 Mean <- unlist(lapply(data[,2:8],mean))
 Standard_deviation <- unlist(lapply(data[,2:8],sd))
@@ -25,23 +25,15 @@ Variance <- unlist(lapply(data[,2:8],var))
 Max <- unlist(lapply(data[,2:8],max))
 Min <- unlist(lapply(data[,2:8],min))
 Median <- unlist(lapply(data[,2:8],median))
-```
-
-```{r}
-Mean
-Standard_deviation
-Variance
-Max
-Min
-Median
+data.frame(Mean, Standard_deviation, Variance, Min, Max, Median)
 ```
 
 
 ### b)
 
-Dot plot for each variable to investigate if any extreme values can be found. 
+Here dot plots are created for each variable in order to investigate if any extreme values can be found.
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.height=3, fig.width=7}
 library(ggplot2)
 library(gridExtra)
 library(scales)
@@ -68,16 +60,21 @@ plot6 <- ggplot(data, aes(x=data[, 7], y=row.names(data))) +  geom_point(col="wh
 plot7 <- ggplot(data, aes(x=data[, 8], y=row.names(data))) +  geom_point(col="white")+
   labs(list(title =colnames(data)[8] , x = "Time")) + 
   geom_text(aes(label=data[, 1]), vjust=1.2, hjust=0.5, size=2)
+grid.arrange(plot1, plot2, ncol=2)
 
-grid.arrange(plot1, plot2,plot3,plot4, ncol=2)
-grid.arrange(plot5, plot6,plot7, ncol=2)
 
 
 ```
 
+```{r, echo=FALSE, fig.height=3, fig.width=7}
+grid.arrange(plot3,plot4, ncol=2)
+grid.arrange(plot5, plot6, ncol=2)
+grid.arrange(plot7, ncol=2)
+```
+
 An interpretation of the dot plots is that extreme values can be seen in most of the graphs. The most extreme countries seem to be Samoa and Cook Islands who has the most extreme values for several variables.  
 
-Examining if the variables seem to be normally distributed by looking at the following plots. A box plot is also included to illustrate how much the values differ for the respective distance.    
+The objective with the next graphs is to examine if the variables seem to be normally distributed. A box plot is also included to illustrate how much the values differ for the respective distance.    
 
 ```{r, echo=FALSE}
 par(mfrow=c(2, 4))
@@ -90,9 +87,9 @@ bxpdat <- boxplot(data[,2:8],col="blue",main="Boxplot")
 par(mfrow=c(1, 1))
 ```
 
-It is concluded that the observated values for all the variables are lying quite well along the red line. This indicates that they can be thougth of as being approximately normally distributed. Regarding the box plot it can easily be seen that the values differ far more for marathon than for instance 100m.  
+It is concluded that the observated values for all the variables are lying quite well along the red line. This indicates that they can be thougth of as being approximately normally distributed. Regarding the box plot it can easily be seen that the values differ far more for Marathon than for a shorter distance like for instance 100m.  
 
-## Assigment 2
+## Assignment 2
 
 ### a)
 Covariance and correlation matrices:  
@@ -106,13 +103,13 @@ corrDat
 The correlation is stronger for more similar distances. For example the 100m have the strongest correlation to 200m, second strongest to 400m and so on. Regarding the variance it seem to be rising for longer distances. 
 
 ### b)
-A scatterplot matrix
+A scatterplot matrix is used in order to search for extreme values.  
 
 ```{r, echo=FALSE}
 plot(data[, 2:8], col="blue")
 ```
 
-The longer distance, the more apparent extreme values. When looking at for example Marathon versus the other variables there are three extreme values and for 3000m there are at least one extreme value. 
+The discovered pattern in the scatterplot matrix is that the longer distance, the more apparent extreme values. When looking at for example Marathon versus the other variables there are three extreme values and for 3000m there are at least one extreme value. 
 
 ### c)
 Another way of visually investigating which countries that are the most extreme is by looking at three-dimensional scatterplots. 
@@ -134,8 +131,8 @@ The five most extreme countries according to the squared Euclidiean distance:
 XmeanV<-(data[,2:8])
 XmeanV<-(scale(XmeanV,center = TRUE,scale = FALSE))
 sqdistance<-(XmeanV)%*%t(XmeanV)
-sqDiagdistance<-(diag(sqdistance))
-result<-data.frame(data[,1],sqDiagdistance)
+EucDistance<-(diag(sqdistance))
+result<-data.frame(Country = data[,1],sqrt(EucDistance))
 slutresult<-result[order(-result[,2]),]
 head(slutresult, n=5)
 ```
@@ -147,10 +144,10 @@ When the Euclidean distances are computed for standardized data the following co
 ```{r,echo=FALSE}
 VarV<-diag(covDat)
 VarM<-as.vector(VarV)*diag(length(VarV))
-newSqDistance<-(XmeanV)%*%solve(VarM)%*%t(XmeanV)
-newSqDistance<-diag(newSqDistance)
+StzSqDistance<-(XmeanV)%*%solve(VarM)%*%t(XmeanV)
+StzSqDistance<-diag(StzSqDistance)
 #newSqDistance<-as.data.frame(t(newSqDistance))
-result2<-data.frame(data[,1],newSqDistance)
+result2<-data.frame(Country =data[,1],StzSqDistance)
 slutresult2<-result2[order(-result2[,2]),]
 head(slutresult2, n=5)
 
@@ -162,9 +159,9 @@ head(slutresult2, n=5)
 A third way to measure the distance is by computing Mahalanobis distances between the countries. The five most extreme values according to this measure are given by the following table.  
 
 ```{r, echo=FALSE}
-MahanabisD<-(XmeanV)%*%solve(covDat)%*%t(XmeanV)
-MahanabisD<-diag(MahanabisD)
-result3<-data.frame(data[,1],MahanabisD)
+MahaDist<-(XmeanV)%*%solve(covDat)%*%t(XmeanV)
+MahaDist<-diag(MahaDist)
+result3<-data.frame(Country =data[,1],MahaDist)
 slutresult3<-result3[order(-result3[,2]),]
 head(slutresult3, n=5)
 ```
