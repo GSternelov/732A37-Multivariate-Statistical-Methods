@@ -5,7 +5,7 @@ data <- read.delim(data, header=FALSE)
 names(data) <- c("Country", "100", "200", "400", "800", "1500", "3000", "Marathon")
 
 ##### Assignment 1
-
+{
 ### a)
 corrMat <- cor(data[,2:8])
 eigenVal <- eigen(corrMat)[1]
@@ -33,19 +33,20 @@ ggplot(pcScores, aes(x=PC1, y=PC2)) + geom_point() + geom_text(aes(label=country
 # rank the nations based on their score for PC1
 TopNat <- pcScores[order(-pcScores$PC1),]
 head(TopNat[,c(1,3)])
+}
 
 ##### Assignment 2
 corFA <- cor(data[, 2:8])
 covFA <- cov(data[, 2:8])
 
-# With covariance matric
-FAcov <- factanal(data=(data[,2:8]),covmat =covFA, factors = 3, scores = "Bartlett")
-
 # With correlation matrix
 FAcor <- factanal(x=data[,2:8], factors = 2, scores = "Bartlett")
-FAcor$
 plot(FAcor$scores)
 
+# With covariance matric
+# center data
+dataCent <- as.matrix(data.frame(scale(data[,2:8], scale = FALSE, center = TRUE)))
+(2*pi) - (54*7 / 2) * det(covFA) - (54/2) * exp(-0.5) * sum(diag(solve(covFA) * (sum(dataCent %*% t(dataCent) +54* dataCent %*% t(dataCent)))))
 
 
 ## Principal component solution with S
@@ -68,7 +69,7 @@ residualMat <- covFA - (L%*%t(L) + TestPsi)
 covEigenV[1,] / sum(diag(covFA))
 covEigenV[2,] / sum(diag(covFA))
 
-factorLoadCov <- L[,1]
+factorLoadCov <- L[,1:2]
 # Factor scores
 dataCtrd <- as.matrix(scale(data[,2:8], center=TRUE, scale=FALSE))
 ScoresCov <- t(solve(t(L)%*%L) %*% t(L) %*% t(dataCtrd))

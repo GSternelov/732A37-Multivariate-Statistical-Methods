@@ -1,7 +1,7 @@
 ---
 title: "Lab 3 - Multivariate Statistical Methods"
 author: "Gustav Sternelöv"
-date: "30 november 2015"
+date: "2 December 2015"
 output:
   pdf_document:
     fig_height: 4
@@ -54,7 +54,7 @@ prComp$rotation[,1:2]
 ```{r, echo=FALSE, warning=FALSE}
 pcScores <- data.frame(PC1=prComp$x[,1], PC2=prComp$x[,2], country=data[,1])
 library(ggplot2)
-ggplot(pcScores, aes(x=PC1, y=PC2)) + geom_point() + geom_text(aes(label=country))
+ggplot(pcScores, aes(x=PC1, y=PC2)) + geom_point() + geom_text(aes(label=country)) + geom_vline(xintercept=0, col="red") + geom_hline(yintercept=0, col="red")
 ```
 The first principal component seem to measure the excellence of a nation since countries like USA, Germany and Russia, well-known top nations, are among those with the highest scores and less well-known countries in the field of athletics like Samoa and Cook Islands have the lowest scores.  
 Regarding the second component the values points out the relative strength for a country in shorter versus longer running distances. If a country is better at shorter distances it obtains a lower value and if it is better at longer distances the value becomes higher. If the difference between how well the country performs at shorter and longer distances is small, the value for the second component also will become small. 
@@ -70,4 +70,75 @@ data.frame(cbind(Head, Tail), row.names=NULL)
 When athletic excellence is compared between countries, the ones who have the highest scores are all well-known top nations. The reverse can be said about the countries with the lowest scores since they are fairly small countries who cannot compete with USA, Germany and so on when athletic excellence is compared.  
 
 # Assignment 2
+## Principal component solution with S matrix
 
+The loadings for the first two factors and the proportion of total sample variance explained by these factors are given in the tables below. An interpretation of the factors gives that the first factor explains almost all of the variation, and that second factor only explain a minor part of the variation. The first factor is therefore the only factor that is of interest to examine more closely. This factor has, by margin, its highest value for the variable *Marathon*. The effect of this is that national track records for *Marathon* becomes very influential when calculating the scores. 
+```{r, echo=FALSE}
+covFA <- cov(data[, 2:8])
+covEigenV <- as.matrix(data.frame(eigen(cov(data[, 2:8]))[1]))
+covEigenVec <- as.matrix(data.frame(eigen(cov(data[, 2:8]))[2]))
+
+L <- matrix(ncol=7, nrow=7) 
+for(i in 1:7){
+  L[,i] <- sqrt(covEigenV[i,]) * covEigenVec[,i]
+}
+TestPsi <- diag(x=diag(covFA - L%*%t(L)))
+# Proportion of total sample variance explained
+factorLoadCov <- data.frame(F1 =L[,1], F2 = L[,2])
+factorLoadCov
+data.frame(F1 = covEigenV[1,] / sum(diag(covFA)), F2=covEigenV[2,] / sum(diag(covFA)), row.names = "Percentage")
+
+```
+
+The scores, calculated with the weighted least squares method, for the chosen factors are presented with the following plot.  
+```{r, echo=FALSE}
+dataCtrd <- as.matrix(scale(data[,2:8], center=TRUE, scale=FALSE))
+ScoresCov <- data.frame(t(solve(t(L)%*%L) %*% t(L) %*% t(dataCtrd)), country=data[,1])
+ggplot(ScoresCov, aes(x=X1, y=X2)) + geom_point()  + geom_vline(xintercept=0, col="red") + geom_hline(yintercept=0, col="red") + geom_text(aes(label=country))
+```
+The outliers in the plot are Papua New Guinea, Cook Islands and Samoa. These countries all have in common that they have high track records for *Marathon* and therefore they obtain quite large negative scores for the first factor. 
+
+
+## Principal component solution with R matrix
+The loadings for the first two factors and the proportion of total sample variance explained by these factors are given in the tables below. In this case, when the R matrix is used instead of the S matrix, both the first and the second factor seem to be of interest since also the second explains a significant part of the variance. Both the first and the second factor looks quite similar to the principal components obtained in the first assignment. Also here the interpretation is that the first factor measures the athletic excellence and that the second factor gives the relative strength between short and long distances.    
+```{r, echo=FALSE}
+corFA <- cor(data[, 2:8])
+corEigenV <- as.matrix(data.frame(eigen(cor(data[, 2:8]))[1]))
+corEigenVec <- as.matrix(data.frame(eigen(cor(data[, 2:8]))[2]))
+Lcor <- matrix(ncol=7, nrow=7) 
+for(i in 1:7){
+  Lcor[,i] <- sqrt(corEigenV[i,]) * corEigenVec[,i]
+}
+TestPsi <- diag(x=diag(corFA - Lcor%*%t(Lcor)))
+
+factorLoadCor <- data.frame(F1 =Lcor[,1], F2 = Lcor[,2])
+factorLoadCor
+data.frame(F1 = corEigenV[1,] / 7, F2= corEigenV[2,] / 7, row.names = "Percentage")
+```
+
+The scores, calculated with the weighted least squares method, for the chosen factors are presented with the following plot.  
+```{r, echo=FALSE}
+dataCtrd <- as.matrix(scale(data[,2:8], center=TRUE, scale=FALSE))
+ScoresCor <- data.frame(t(solve(t(Lcor)%*%Lcor) %*% t(Lcor) %*% t(dataCtrd)),country=data[,1])
+ggplot(ScoresCor, aes(x=X1, y=X2)) + geom_point()  + geom_vline(xintercept=0, col="red") + geom_hline(yintercept=0, col="red") + geom_text(aes(label=country))
+```
+Just as for the factor analysis with the S matrix the outliers are Papua New Guinea, Cook Islands and Samoa. They have very high positive values for the factor scores for both the first and second factor.  
+A comparison between the scores for the factor analysis with the S matrix and the factor analysis with the S matrix gives that the results are quite similar. The same countries became outliers for both methods. When comparing the interpretability for the results it is concluded that the factors obtained for the factor analysis with the R matrix are much easier to interpret.  
+
+## The maximum likelihood method
+The loadings for the first two factors and the proportion of total sample variance explained by these factors are given in the tables below. With the ML method two factors are chosen, just as for the other methods, but here the factors explain approximately equally much of the toal sample variance. An interpretation of the factors gives that the first factor has higher loadings for the longer distancs and that the second factor have higher loadings for the shorter distances.   
+
+```{r, echo=FALSE}
+FAcor <- factanal(x=data[,2:8], factors = 2, scores = "Bartlett")
+FAcor$loadings
+```
+
+The scores, calculated with the weighted least squares method, for the chosen factors are presented with the following plot.  
+```{r, echo=FALSE}
+MLScores <- data.frame(FAcor$scores, country=data[,1])
+ggplot(MLScores, aes(x=Factor1, y=Factor2)) + geom_point()  + geom_vline(xintercept=0, col="red") + geom_hline(yintercept=0, col="red") + geom_text(aes(label=country))
+
+```
+Samoa is an outlier because of the countries high score for the first factor, which is an effect of their weak records on longer distances. North Korea and Cook Islands could also be thought of as being outliers because of their high score for the second factor. For both countries the high value is obtained because their records for short distances are quite bad.
+
+For the maximum likelihood method to be adequate, the data set should be normally distributed. This was investigated in the first lab in the course and mine conclusion in that report was that the data set could be thought of as following a bivariate normal distribution. An implication of this is that the factor analysis which was made with the maximum likelihood method is considered to be adequate. 
