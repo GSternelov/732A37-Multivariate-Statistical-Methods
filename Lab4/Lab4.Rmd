@@ -1,0 +1,87 @@
+---
+title: "Lab 4 - Multivariate Statistical Methods"
+author: "Gustav Sternelöv"
+date: "9 december 2015"
+output: 
+   pdf_document
+---
+
+```{r, echo=FALSE}
+covMat <- matrix(c(1106, 396.7, 108.4, 0.787, 26.23, 396.7, 2382, 1143, -0.214, -23.96,
+         108.4, 1143, 2136, 2.189, -20.84, 0.787, -0.214, 2.189, 0.016, 0.216,
+         26.23, -23.96, -20.84, 0.216, 70.56), nrow=5, ncol=5)
+corMat <- cov2cor(covMat)
+
+s11 <- covMat[1:3, 1:3]
+s12 <- covMat[1:3, 4:5]
+s21 <- covMat[4:5, 1:3]
+s22 <- covMat[4:5, 4:5]
+r11 <- corMat[1:3, 1:3]
+r12 <- corMat[1:3, 4:5]
+r21 <- corMat[4:5, 1:3]
+r22 <- corMat[4:5, 4:5]
+expM <- function(X,e) { v <- La.svd(X); v$u %*% diag(v$d^e) %*% v$vt } 
+```
+
+# A)
+```{r, echo=FALSE, warning=FALSE}
+EigVal1 <- eigen(expM(s11, -0.5) %*% s12 %*% solve(s22) %*% s21 %*% expM(s11, -0.5))[1]
+Pstar1 <- sqrt(EigVal1[[1]])[1]
+EigVal2 <- eigen(expM(s22, -0.5) %*% s21 %*% solve(s11)%*% s12 %*% expM(s22, -0.5))
+Pstar2 <- sqrt(EigVal2[[1]])[2]
+tVal <- -(46-1-0.5*(3+2+1)) * log((1-Pstar1^2) * (1-Pstar2^2))
+chi_sq_val <- qchisq(1-0.05, df=6)
+```
+To test whether there exist a significant association at 5 % level between the primary and secondary set of variables a likelihood ratio test is conducted. The null hypothesis is that all canonical correlations is zero. This hypothesis is rejected at 5 % signifiance level if
+$$-(n-1-0.5(p+q+1)) ln \prod (1-\hat{\rho{_i^*}}) > \chi{^2_{pq}}(\alpha) $$
+
+$$-(46-1-0.5(3+2+1)) ln[(1 - `r Pstar1`^2)(1-`r Pstar2`^2)] = `r tVal`$$
+and $$\chi{^2_6}(0.05) = `r chi_sq_val`$$ 
+Since `r tVal` > `r chi_sq_val`, the null hypothesis is rejected. With a significance level of 5 % it is concluded that there is an association between the primary and secondary variables.
+
+# B)
+```{r, echo=FALSE}
+tVal2 <- -(46-1-0.5*(3+2+1)) * log(1-Pstar2^2)
+chi_sq_val2 <- qchisq(1-0.05, df=2) 
+```
+
+To test if also the second canonical correlation is significantly seperated from zero a test similar to the one in *A)* is conducted. The null hypothesis now is that $\rho{_2^*}\doteq0$. Again I start by computing the test statistic
+$$-(46-1-0.5(3+2+1)) ln[(1-`r Pstar2`^2)] = `r tVal2`$$
+and then also the critical value $$\chi{^2_2}(0.05) = `r chi_sq_val2`$$ 
+The observed test statistic is lower than the critical value, hence the null hypothesis cannot be rejected. This implies that only the first pair of canonical variates is significant.
+
+# C)
+The squared canonical correlation that was significant according to the test was $\rho{_1^{*2}}$ which is equal to `r round(Pstar1,3)`^2 (`r round(Pstar1^2,3)`). The interpretation of this value is that `r round(Pstar1^2,3) * 100`% of the variance of canonical variate $U_1$ is explained by the secondary set of variables. Reversly this value also could be interpreted as the proportion of variance of canonical variate $V_1$ that is explained by the primary set of variables. 
+
+
+# D)
+```{r, echo=FALSE}
+library(knitr)
+EigVec1 <- eigen(expM(r11, -0.5) %*% r12 %*% solve(r22) %*% r21 %*% expM(r11, -0.5))[2]
+EigVec2 <- eigen(expM(r22, -0.5) %*% r21 %*% solve(r11) %*% r12 %*% expM(r22, -0.5))[2]
+U1 <- t(as.matrix(EigVec1[[1]][,1])) %*% expM(r11, -0.5) 
+V1 <- t(as.matrix(EigVec2[[1]][,1])) %*% expM(r22, -0.5) 
+corrU1 <- as.vector(U1 %*% r11)
+names(corrU1) <- c("Glucose", "Insulin", "Insulres")
+CU1 <- t(data.frame(corrU1))
+corrV1 <- as.vector(V1 %*% r22)
+names(corrV1) <-c("Weight", "Fasting")
+```
+
+The canonical variates and the correlations between the variables and their canonical variates:
+$$\hat{U_1} = `r U1[1]`z_1^{(1)} `r U1[2]`z_2^{(1)} + `r U1[3]`z_3^{(1)}$$
+$$\hat{V_1} = `r V1[1]`z_1^{(2)} + `r V1[2]`z_2^{(2)}$$
+`r kable(corrU1, format = "latex", caption="Correlation between U1 and the primary set", align="c")`
+`r kable(corrV1, format = "latex", caption="Correlation between V1 and the secondary set")`
+
+The canonical variates describes how influent the respective variables are. It can be concluded that the two insulin variables dominates $\hat{U_1}$ and that $\hat{V_1}$ mainly consists of the variable *Weight*. 
+
+A high value for the correlation between the variables and their canonical variates indicates that the variable is closely associated with the canonical variate. For $\hat{U_1}$ *Insulres* has a strong correlation and *Glucose* a moderately strong correlation. The last variable in the first set, *Insuline*, is an influent variable for the coefficients in $\hat{U_1}$ but is not closely associated to the variate. Regarding $\hat{V_1}$ *Weight*, the variable who dominated the variate, is very closely associated to the canonical variate and the second variable *Fasting* has a very weak correlation with the variate. 
+
+# E)
+For the first canonical variate, $\hat{U_1}$, only one of the variables is very closely associated to $\hat{U_1}$. This canonical variate is therefore not thought to be a good summary measure of the primary data set. Regarding the secondary data set one of the two variables is closely associated to the $\hat{V_1}$, but the second variable is barely associated at all with the canonical variate. Since this is the case neither the of the significant canonical variates are concluded to be good summary measures of their respective data set. 
+
+# F)
+A rather low amount of the variation is explained, 26.8 %  
+It can be questioned how well the canonical variates works as summary measures of the respective data set.  
+The analysis is below decent, the canonical correlation did not work very vell on this data sets.
